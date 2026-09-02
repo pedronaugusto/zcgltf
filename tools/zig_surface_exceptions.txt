@@ -1,0 +1,5 @@
+# Entry points src/c/ declares that the idiomatic layer deliberately does not
+# call, one per line: NAME<TAB>reason (>= 10 chars). ci/check-coverage.sh
+# fails on an extern that is neither called nor listed here, and on a listed
+# extern that IS called — an excuse must not outlive its reason.
+cgltf_copy_extras_json	deprecated upstream; Extras.data carries the same span

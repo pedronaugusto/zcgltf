@@ -1,0 +1,4 @@
+# Multi-digit numbers the documentation may state OUTSIDE a generated block,
+# one per line: NUMBER<TAB>reason it cannot go stale. ci/check-docs.sh fails
+# on a hand-written number that is neither generated nor listed here, and on
+# a listed number no document states.
