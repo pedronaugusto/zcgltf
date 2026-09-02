@@ -236,7 +236,9 @@ pub const MeshoptCompression = extern struct {
 
 /// `cgltf_buffer_view`: `data` overrides `buffer.data` when an extension
 /// (meshopt compression) decoded this view out of line; `stride == 0` defers
-/// to the accessor.
+/// to the accessor. A non-null `data` is released by `cgltf_free` through
+/// `memory.free_func` (cgltf.h:1875), so it must come from the document's
+/// own allocator.
 pub const BufferView = extern struct {
     name: ?[*:0]u8,
     buffer: ?*Buffer,

@@ -21,6 +21,10 @@
 #                             # pre-push hook; the hosted abi-drift-msvc job
 #                             # runs it on every push, and a release should
 #                             # run it here.
+#   ci/run.sh --interop       # full matrix, plus the zmeshopt round trip.
+#                             # Opt-in because tests/interop depends on a
+#                             # SIBLING zmeshopt checkout, which a clone of
+#                             # this repo alone does not have.
 #
 # Exits non-zero if any step fails, after running every step — a single
 # failure should not hide the others.
@@ -36,6 +40,7 @@ ZIG="${ZIG:-zig}"
 
 QUICK=0
 DRIFT_TARGET=
+INTEROP=0
 
 # --list names every step this script would run, one per line, and runs none
 # of them. ci/measurements.sh counts those lines, so README's step count is
@@ -48,6 +53,7 @@ for arg in "$@"; do
     --quick) QUICK=1 ;;
     --list) LIST=1 ;;
     --drift-target=*) DRIFT_TARGET=${arg#*=} ;;
+    --interop) INTEROP=1 ;;
     *) printf 'ci/run.sh: unknown argument %s
 ' "$arg" >&2; exit 2 ;;
   esac
@@ -97,7 +103,7 @@ section 'Hygiene'
 # Only our own Zig sources: libs/cgltf is vendored verbatim and must not be
 # reformatted, or the next re-vendor becomes an unreadable diff.
 run 'zig fmt (src, examples, tests, build.zig)' \
-  $ZIG fmt --check src examples tests/consumer build.zig
+  $ZIG fmt --check src examples tests/consumer tests/interop build.zig
 
 # Comment blocks stay short and stay out of the narrative register.
 run 'comment standard' ci/check-comments.sh
@@ -143,6 +149,13 @@ if [ $QUICK -eq 0 ]; then
   # the in-repo suite. See tests/consumer/build.zig.
   run 'consumer (module + artifact)' \
     $ZIG build --build-file tests/consumer/build.zig run
+
+  # The pairing with zmeshopt, end to end — encode, parse, decode, read
+  # back through the accessor API. Opt-in for the reason in the usage note:
+  # its build depends on a sibling zmeshopt checkout.
+  [ $INTEROP -eq 0 ] ||
+    run 'interop (zmeshopt round trip)' \
+      $ZIG build --build-file tests/interop/build.zig run
 
   #---------------------------------------------------------------------------
   section 'ABI'

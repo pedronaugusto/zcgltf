@@ -1,0 +1,11 @@
+.{
+    .name = .zcgltf_interop,
+    .version = "0.0.0",
+    .fingerprint = 0xc96c871f051b9fcf,
+    .minimum_zig_version = "0.16.0",
+    .dependencies = .{
+        .zcgltf = .{ .path = "../.." },
+        .zmeshopt = .{ .path = "../../../zmeshopt" },
+    },
+    .paths = .{""},
+}

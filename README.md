@@ -202,7 +202,7 @@ and the C artifact are each driven by a real consumer there.
 | **49** | document-model structs mirrored field-by-field (`src/c/types.zig`) |
 | **17** | enums mirrored enumerator-by-enumerator |
 | **13** | Zig tests `zig build test` executes |
-| **2255** | Zig source lines (`src/`) |
+| **2257** | Zig source lines (`src/`) |
 | **19** | deliberate drifts `ci/check-abi-drift.sh` must refuse |
 | **21** | steps `ci/run.sh` runs |
 | **7** | further targets `ci/run.sh` cross-compiles |
@@ -290,7 +290,11 @@ contract between the two:
    `mode`, then the filter per its `filter`).
 3. Write the decoded pointer into `view.data`, which `bufferViewData` — and
    through it the whole accessor API — prefers over the underlying buffer,
-   so the decoded bytes are read transparently from then on.
+   so the decoded bytes are read transparently from then on. Ownership
+   transfers with the pointer: `free` releases every non-null `view.data`
+   through `memory.free_func` (`cgltf.h:1875`), so allocate the decoded
+   bytes through the document's own `MemoryOptions` and do not free them
+   yourself. `tests/interop/` runs this contract end to end.
 
 Neither package depends on the other — the pairing is a host-side loop, and
 the packages meet only in zcgltf's test suite as a dev dependency.

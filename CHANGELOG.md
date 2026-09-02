@@ -29,3 +29,10 @@ headers declare, the writer included — with:
 - A consumer package (`tests/consumer/`) driving the module and the C
   artifact the way a downstream `b.dependency` does, examples that are
   built AND run, generated README numbers, and the family CI matrix.
+- The pairing with the sibling zmeshopt run end to end (`tests/interop/`,
+  `ci/run.sh --interop`): zmeshopt encodes, cgltf parses the
+  `EXT_meshopt_compression` metadata, zmeshopt decodes into `view.data`,
+  and the accessor API reads the decoded bytes. Running it is what
+  measured the ownership rule — `free` releases every non-null
+  `view.data` through `memory.free_func` — now stated in README and on
+  the `BufferView` mirror.

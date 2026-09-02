@@ -104,4 +104,7 @@ same field.
 `zig build test` is the bar — it runs the oracle, the behavioural suite,
 the C smoke test and the examples. `ci/run.sh` before pushing;
 `ci/check-abi-drift.sh` if you touched the oracle or the declarations, and
-on both ABIs (`-Dtarget=x86_64-windows-msvc`) for a release.
+on both ABIs (`-Dtarget=x86_64-windows-msvc`) for a release. A change that
+touches the pairing surface (`BufferView.data`, `MeshoptCompression`, the
+buffer loaders) also runs `ci/run.sh --interop` next to a sibling zmeshopt
+checkout.
