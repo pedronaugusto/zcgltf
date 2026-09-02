@@ -294,7 +294,8 @@ contract between the two:
    transfers with the pointer: `free` releases every non-null `view.data`
    through `memory.free_func` (`cgltf.h:1875`), so allocate the decoded
    bytes through the document's own `MemoryOptions` and do not free them
-   yourself. `tests/interop/` runs this contract end to end.
+   yourself. `tests/interop/` runs this contract end to end —
+   `ci/run.sh --interop`, with zmeshopt checked out as a sibling directory.
 
 Neither package depends on the other — the pairing is a host-side loop, and
 the packages meet only in zcgltf's test suite as a dev dependency.
