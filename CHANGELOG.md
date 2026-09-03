@@ -4,6 +4,36 @@ Each entry says what the old shape could not express, so a port has the reason
 and not only the diff. Versions follow [semantic versioning](https://semver.org);
 before 1.0 the minor is the breaking one.
 
+## 0.1.1
+
+Documentation and gates only. The library, its ABI and its behaviour are
+unchanged from 0.1.0, so an upgrade is a re-pin and nothing else.
+
+- The zmeshopt pairing was described as part of the test suite while
+  nothing ran it: `ci/run.sh` hid it behind `--interop`, no CI job existed,
+  and it needed a sibling checkout on disk. It is now a default step and a
+  job of its own, `tests/interop` pins a released zmeshopt by URL and hash
+  so a lone clone can run it, and it covers every
+  `EXT_meshopt_compression` mode and the exponential filter rather than
+  two of them.
+- The C smoke test was compiled with `libs/cgltf` on its include path as
+  well as the installed header, so "proves the installed headers" was not
+  what it proved. The extra path is gone; `linkLibrary` propagates what
+  `installHeader` publishes.
+- The version test was said to compare two copies of the version. There is
+  no second copy — it checks the shape of the one in `build.zig.zon` — and
+  the three places that said "compares" say what it does.
+- The MSVC drift arm was justified by an enum underlying-type difference
+  the oracle deliberately ignores. It is justified now by what it actually
+  proves: the header preprocessed for a second target, laid out by the
+  other compiler's rules.
+- Smaller: a deprecation citation one line off, the pin's date labelled as
+  the commit date, the `fopen` claim sourced, the deprecated `Extras`
+  offsets noted, the re-vendor procedure naming every home of the upstream
+  version string, the number gate's blind spots written down, a sibling
+  vestige dropped from `ci/check-coverage.sh`, and `.gitignore` covering
+  the `.bak` the drift script leaves when interrupted.
+
 ## 0.1.0
 
 First release. Complete bindings for cgltf v1.15 — every function both
