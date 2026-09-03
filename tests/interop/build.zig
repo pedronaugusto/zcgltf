@@ -2,9 +2,9 @@ const std = @import("std");
 
 /// The one place zcgltf and its sibling zmeshopt meet: an executable that
 /// round-trips `EXT_meshopt_compression` end to end. zmeshopt is a
-/// dependency of THIS package only — never of zcgltf itself — and it is a
-/// path dependency on a sibling checkout, so this package builds where both
-/// repositories are checked out side by side (`ci/run.sh --interop`).
+/// dependency of THIS package only — never of zcgltf itself — pinned by URL
+/// and hash to a released version in build.zig.zon, so the round trip runs
+/// against what a user would fetch.
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});

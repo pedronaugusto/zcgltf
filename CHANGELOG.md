@@ -13,7 +13,7 @@ headers declare, the writer included — with:
   every struct, enum and the one union) proved against the vendored headers
   by a comptime reflective cross-check (`src/abi_check.zig`) whose reverse
   sweep makes completeness a build property, and whose own vigilance is
-  proved by `ci/check-abi-drift.sh` on both the Itanium and MSVC ABIs.
+  proved by `ci/check-abi-drift.sh` on both the linux-gnu and MSVC ABIs.
 - An idiomatic layer over all of it: `cgltf_result` folded into an error
   set, slice-based accessor reading and unpacking, comptime-dispatched
   object-to-index lookup, and error-union parse/load/validate/write.
@@ -30,9 +30,10 @@ headers declare, the writer included — with:
   artifact the way a downstream `b.dependency` does, examples that are
   built AND run, generated README numbers, and the family CI matrix.
 - The pairing with the sibling zmeshopt run end to end (`tests/interop/`,
-  `ci/run.sh --interop`): zmeshopt encodes, cgltf parses the
-  `EXT_meshopt_compression` metadata, zmeshopt decodes into `view.data`,
-  and the accessor API reads the decoded bytes. Running it is what
+  a default step of `ci/run.sh` and its own CI job): zmeshopt encodes,
+  cgltf parses the `EXT_meshopt_compression` metadata, zmeshopt decodes
+  into `view.data`, and the accessor API reads the decoded bytes, for all
+  three modes and the exponential filter. Running it is what
   measured the ownership rule — `free` releases every non-null
   `view.data` through `memory.free_func` — now stated in README and on
   the `BufferView` mirror.

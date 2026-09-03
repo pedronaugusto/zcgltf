@@ -38,8 +38,8 @@ emit() {
 
 sum() { awk '{ total += $1 } END { print total + 0 }'; }
 
-# build.zig.zon is the version's one home; src/zcgltf.zig's version() test
-# receives it as a build option and fails if the two disagree.
+# build.zig.zon is the version's one home; src/zcgltf.zig's version()
+# receives it as a build option, so there is no second copy to disagree.
 emit version "$(sed -n 's/^ *\.version = "\([^"]*\)".*/\1/p' build.zig.zon)" \
   'version (one home: `build.zig.zon`)'
 
@@ -62,7 +62,7 @@ externs=$(grep -hc '^pub extern fn cgltf_' src/c/*.zig | sum)
 emit zig_externs "$externs" 'Zig externs (`pub extern fn` in `src/c/*.zig`)'
 
 emit mirrored_structs "$(grep -hc '^pub const [A-Za-z0-9]* = extern struct {' src/c/types.zig)" \
-  'document-model structs mirrored field-by-field (`src/c/types.zig`)'
+  'structs mirrored field-by-field (`src/c/types.zig`)'
 emit mirrored_enums "$(grep -hc '^pub const [A-Za-z0-9]* = enum(' src/c/types.zig)" \
   'enums mirrored enumerator-by-enumerator'
 

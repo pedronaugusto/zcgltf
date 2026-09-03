@@ -25,10 +25,8 @@
 #
 # Any argument given is appended to every `zig build test` below. The one
 # that matters is `-Dtarget`: the oracle compares src/c/ against @cImport of
-# the headers AS PREPROCESSED FOR A TARGET, so a guard proved to fire on one
-# ABI is not proved to fire on another — a C enum is `int` under MSVC and
-# `unsigned int` under the Itanium ABI, and cgltf's signatures and structs
-# carry enums throughout.
+# the headers AS PREPROCESSED AND LAID OUT FOR A TARGET, so a guard proved
+# to fire on one ABI is not proved to fire on another.
 
 set -uo pipefail
 SELF=$(cd "$(dirname "$0")" && pwd)/$(basename "$0")

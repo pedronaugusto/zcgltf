@@ -107,9 +107,10 @@ two documents can use two allocators.
 
 `fileOptions(io)` replaces the fopen-based default reader with `std.Io`.
 That is not a convenience: upstream's default cannot open paths beyond the
-ANSI code page on Windows and mis-sizes files over 2 GiB on non-MSVC
-toolchains ([UPSTREAM.md](UPSTREAM.md) has the file:line for both), and
-upstream's own documented escape hatch for that is exactly this hook.
+ANSI code page on Windows and, compiled by anything but MSVC, mis-sizes
+Windows files over 2 GiB ([UPSTREAM.md](UPSTREAM.md) has the file:line for
+both), and upstream's own documented escape hatch for that is exactly this
+hook.
 
 ### The ABI guard
 
@@ -137,15 +138,16 @@ quietly makes it vacuous looks exactly like a passing build.
 `ci/check-abi-drift.sh` is the answer — deliberate drifts applied one at a
 time, each of which must be refused, including the struct-field swap that
 leaves every offset unchanged and so defeats any positional comparison, and
-two mutations against the coverage gate. It runs on the Itanium ABI and on
-MSVC's as separate CI jobs, because the headers are compared *as
-preprocessed for a target* and a C enum's type differs between the two.
+two mutations against the coverage gate. It runs as two CI jobs, on the
+x86_64-linux-gnu ABI and on MSVC's, because the headers are compared *as
+preprocessed and laid out for a target*, so a refusal proved on one ABI is
+not proved on the other.
 
 One class of hazard lives below anything a declaration can express: Zig
 0.16.0 was measured — by the sibling package
-[zmeshopt](https://github.com/pedronaugusto/zmeshopt)'s CI — miscompiling
-two CALLER shapes (a float passed after many integer-class parameters; a
-small all-float struct returned by value). cgltf's surface contains
+[zmeshopt](https://github.com/pedronaugusto/zmeshopt)'s CI, 2026-09-02 —
+miscompiling two CALLER shapes (a float passed after many integer-class
+parameters; a small all-float struct returned by value). cgltf's surface contains
 **neither shape**, which is why this package ships with no forwarding shim —
 and the oracle pins both counts at zero, so a re-vendor that introduces one
 reopens the decision loudly instead of inheriting the hazard silently.
@@ -199,12 +201,12 @@ and the C artifact are each driven by a real consumer there.
 | **0.1.0** | version (one home: `build.zig.zon`) |
 | **39** | upstream C entry points (declared in the vendored `cgltf.h` + `cgltf_write.h`) |
 | **39** | Zig externs (`pub extern fn` in `src/c/*.zig`) |
-| **49** | document-model structs mirrored field-by-field (`src/c/types.zig`) |
+| **49** | structs mirrored field-by-field (`src/c/types.zig`) |
 | **17** | enums mirrored enumerator-by-enumerator |
 | **13** | Zig tests `zig build test` executes |
 | **2257** | Zig source lines (`src/`) |
 | **19** | deliberate drifts `ci/check-abi-drift.sh` must refuse |
-| **21** | steps `ci/run.sh` runs |
+| **22** | steps `ci/run.sh` runs |
 | **7** | further targets `ci/run.sh` cross-compiles |
 <!-- END GENERATED -->
 
@@ -218,9 +220,10 @@ stale. Adding a claim means adding its measurement.
 prove presence, not correctness — the oracle and the behavioural tests hold
 that, and `ci/check-coverage.sh` holds the idiomatic layer's reach one extern
 at a time. Source lines measure volume, not surface. And the gate itself has
-three blind spots: a number spelled as a word, a number inside `code` — where
-it is an identifier or a citation rather than a claim — and a sentence that is
-wrong without containing a number at all.
+blind spots: a number spelled as a word, a single digit, a number joined to
+its neighbour by `-`, `.` or `/` (a date, a byte width), a number inside
+`code` — where it is an identifier or a citation rather than a claim — and a
+sentence that is wrong without containing a number at all.
 
 ### Continuous integration
 
@@ -294,11 +297,13 @@ contract between the two:
    transfers with the pointer: `free` releases every non-null `view.data`
    through `memory.free_func` (`cgltf.h:1875`), so allocate the decoded
    bytes through the document's own `MemoryOptions` and do not free them
-   yourself. `tests/interop/` runs this contract end to end —
-   `ci/run.sh --interop`, with zmeshopt checked out as a sibling directory.
+   yourself. `tests/interop/` runs this contract end to end, in CI and in
+   `ci/run.sh`, through every `mode` and the exponential filter, against a
+   released zmeshopt pinned by URL and hash.
 
 Neither package depends on the other — the pairing is a host-side loop, and
-the packages meet only in zcgltf's test suite as a dev dependency.
+the packages meet only in `tests/interop/`, a package of its own that
+depends on both.
 
 Deliberately out of scope: rendering, scene graphs, image decoding, and
 Draco (upstream parses its metadata but a Draco decoder is its own

@@ -30,7 +30,7 @@ grep -h 'pub extern fn cgltf_' src/c/*.zig |
 # count as calling it. src/c/ and c.zig are declarations, abi_check.zig is
 # the oracle, and neither is use.
 find src -name '*.zig' ! -path 'src/c/*' ! -name 'c.zig' ! -name 'abi_check.zig' \
-     ! -name '*_test.zig' -print0 |
+     -print0 |
   xargs -0 sed -E 's://.*::' |
   grep -oE 'cgltf_[A-Za-z0-9_]+' | sort -u > "$work/wrapped"
 

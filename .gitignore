@@ -1,6 +1,22 @@
-# Build output.
+# Build output, and the packages Zig fetches for tests/interop (the pinned
+# zmeshopt lands under tests/interop/zig-pkg/ on the first build).
 .zig-cache/
 zig-out/
+zig-pkg/
 
 # Worktrees of this repository.
 .claude/
+
+# macOS.
+.DS_Store
+
+# Build artefacts from ad-hoc compiler invocations, and the backup
+# ci/check-abi-drift.sh leaves beside a file if it is interrupted mid-run.
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.bak

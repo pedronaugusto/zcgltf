@@ -8,7 +8,7 @@
 | Version | 1.15 (`cgltf.h:4`) |
 | Tag | `v1.15` |
 | Commit | `360db1a95480fe102ae9c69b27c5d101167ff5ba` |
-| Date | 2025-02-09 |
+| Commit date | 2025-02-09 |
 | License | MIT (`libs/cgltf/LICENSE`) |
 
 ## What was taken, and what was left behind
@@ -59,10 +59,11 @@ MSVC** (`cgltf.h:1060`; the `_ftelli64` branch at `cgltf.h:1058` is
 `#ifdef _MSC_VER` only, which a zig-compiled build is not). On Windows,
 `long` is 32-bit, so a `.glb` over 2 GiB fails as `io_error`. The reader
 also opens with `fopen(path, "rb")` (`cgltf.h:1045`), which on Windows
-cannot represent paths outside the ANSI code page. Upstream's escape hatch
-is the `FileOptions.read` hook, and `src/file.zig`'s `fileOptions` is that
-hatch implemented over `std.Io` — 64-bit sizes and WTF-8→UTF-16 paths on
-every toolchain. The vendored tree stays pristine; the workaround lives on
+interprets a narrow path in the ANSI code page (Microsoft Learn, "fopen,
+_wfopen", checked 2026-09-03), so a path outside it cannot be opened.
+Upstream's escape hatch is the `FileOptions.read` hook, and `src/file.zig`'s
+`fileOptions` is that hatch implemented over `std.Io` — 64-bit sizes and
+WTF-8→UTF-16 paths on every toolchain. The vendored tree stays pristine; the workaround lives on
 this side.
 
 **The writer does not emit `EXT_meshopt_compression`.** `cgltf_write.h`
@@ -77,12 +78,15 @@ the header defines the implementation macros so IDEs index the whole file.
 Real compilations never define those, so the block is inert here — noted
 because it looks alarming in a vendored-verbatim tree.
 
-**`cgltf_result` has one deprecated function attached to it.**
+**One function and two fields are deprecated upstream.**
 `cgltf_copy_extras_json` is marked deprecated by upstream (comment above
-its declaration, `cgltf.h:885`) in favour of reading `cgltf_extras::data`
+its declaration, `cgltf.h:886`) in favour of reading `cgltf_extras::data`
 directly. It is bound — completeness is the point — but the idiomatic layer
 does not wrap it, with the reason on record in
-`tools/zig_surface_exceptions.txt`.
+`tools/zig_surface_exceptions.txt`. `cgltf_extras`'s `start_offset` and
+`end_offset` are deprecated the same way (`cgltf.h:263`, `cgltf.h:264`) in
+favour of its `data`; the mirror keeps both, as a mirror must, and its doc
+comment says so.
 
 ## Re-vendoring procedure
 
@@ -92,9 +96,12 @@ asserted. It runs as its own CI job. Run it after any step below.
 
 1. Clone upstream at the new tag; copy `cgltf.h`, `cgltf_write.h` and
    `LICENSE` over `libs/cgltf/`.
-2. Update the table at the top of this file, and the three constants at the
-   top of `ci/verify-vendor.sh`. The script refuses to run unless the tag
-   and commit both appear in this file, so the two cannot drift.
+2. Update the table at the top of this file, the three constants at the
+   top of `ci/verify-vendor.sh`, and the version the prose names in
+   `README.md`, `src/zcgltf.zig` and `src/abi_check.zig`. The script refuses
+   to run unless the tag and commit both appear in this file, so those two
+   cannot drift; the other three are words, and this list is what holds
+   them.
 3. `zig build test`. `src/abi_check.zig` fails the build if any bound
    function's signature, any struct's layout, any enumerator's value or the
    union's shape has changed — its reverse sweep fails it if the new headers

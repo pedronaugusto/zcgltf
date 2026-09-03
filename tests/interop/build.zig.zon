@@ -5,7 +5,10 @@
     .minimum_zig_version = "0.16.0",
     .dependencies = .{
         .zcgltf = .{ .path = "../.." },
-        .zmeshopt = .{ .path = "../../../zmeshopt" },
+        .zmeshopt = .{
+            .url = "https://github.com/pedronaugusto/zmeshopt/archive/refs/tags/v0.1.1.tar.gz",
+            .hash = "zmeshopt-0.1.0-qEyR2CE8DgBUoE8cCLXbyNYE_cqrh1Qe8yNEIva_k5nw",
+        },
     },
     .paths = .{""},
 }

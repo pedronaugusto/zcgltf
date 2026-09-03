@@ -1,9 +1,8 @@
 /*
  * zcgltf C smoke test: proves the installed headers and static library are
- * usable from plain C with no Zig anywhere. It also covers what the Zig-side
- * ABI check structurally cannot: pointee TYPES are erased by `[*c]` pointers
- * there, so actually parsing through the real structs is the evidence that
- * the pointed-to data agrees too.
+ * usable from plain C with no Zig anywhere — the headers resolve through
+ * the library's installed headers, not an include path into the tree — and
+ * checks values, not just linkage.
  */
 #include <cgltf.h>
 #include <cgltf_write.h>

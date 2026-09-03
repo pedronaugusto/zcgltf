@@ -19,8 +19,8 @@ pub fn build(b: *std.Build) void {
 
     // Every behaviour-affecting option is mirrored into a Zig module so the
     // wrapper can never disagree with how the C was compiled; the version
-    // rides along so a test can compare what the library REPORTS against
-    // build.zig.zon rather than against a literal of its own.
+    // rides along so version() reports build.zig.zon's field rather than a
+    // literal of its own.
     const options_step = b.addOptions();
     options_step.addOption([]const u8, "version", @import("build.zig.zon").version);
     inline for (std.meta.fields(@TypeOf(options))) |field| {
@@ -118,7 +118,6 @@ pub fn build(b: *std.Build) void {
         }),
     });
     c_smoke.root_module.link_libc = true;
-    c_smoke.root_module.addIncludePath(b.path("libs/cgltf"));
     c_smoke.root_module.addCSourceFile(.{
         .file = b.path("tests/c_smoke.c"),
         .flags = &.{"-std=c99"},

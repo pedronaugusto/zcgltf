@@ -32,9 +32,8 @@ pub fn build(b: *std.Build) void {
     });
 
     // 2. The C library as an artifact with its installed headers —
-    //    `#include <cgltf.h>` resolves only through installHeader, which
-    //    nothing in-repo exercises (the in-repo C files reach the headers
-    //    via an include path into the source tree).
+    //    `#include <cgltf.h>` resolves through installHeader, as it does for
+    //    the in-repo C smoke test, and here across a package boundary.
     const c_consumer = b.addExecutable(.{
         .name = "c-consumer",
         .root_module = b.createModule(.{ .target = target, .optimize = optimize }),

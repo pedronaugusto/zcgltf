@@ -10,8 +10,8 @@
 //! below (`Bool32` is `cgltf_bool`), each row itself verified. The reverse
 //! sweep is the completeness gate: every header function must be bound.
 //!
-//! Pointees compare by size/alignment only (`[*c]T` erases them; the C
-//! smoke test covers the gap); function pointers and the union compare deep.
+//! Pointees compare by size/alignment only (the check never descends into a
+//! pointee; tests hold those); function pointers and the union compare deep.
 
 const std = @import("std");
 const c = @import("c.zig");

@@ -6,9 +6,10 @@
 # a failure can be reproduced and fixed on your own machine instead of in a
 # pull request. Install it as a pre-push hook with ci/install-hooks.sh.
 #
-# The one difference from the hosted run: CI executes the suite on Linux,
-# macOS and Windows, whereas this executes it on whichever host you are on and
-# cross-compiles the rest.
+# What the hosted run has that this cannot: the suite executed on Linux,
+# macOS and Windows (this executes it on the host it runs on and
+# cross-compiles the rest), the MSVC test arm, and the vendor-integrity job,
+# which needs the network.
 #
 # Usage:
 #   ci/run.sh                 # full matrix
@@ -21,10 +22,6 @@
 #                             # pre-push hook; the hosted abi-drift-msvc job
 #                             # runs it on every push, and a release should
 #                             # run it here.
-#   ci/run.sh --interop       # full matrix, plus the zmeshopt round trip.
-#                             # Opt-in because tests/interop depends on a
-#                             # SIBLING zmeshopt checkout, which a clone of
-#                             # this repo alone does not have.
 #
 # Exits non-zero if any step fails, after running every step — a single
 # failure should not hide the others.
@@ -40,7 +37,6 @@ ZIG="${ZIG:-zig}"
 
 QUICK=0
 DRIFT_TARGET=
-INTEROP=0
 
 # --list names every step this script would run, one per line, and runs none
 # of them. ci/measurements.sh counts those lines, so README's step count is
@@ -53,7 +49,6 @@ for arg in "$@"; do
     --quick) QUICK=1 ;;
     --list) LIST=1 ;;
     --drift-target=*) DRIFT_TARGET=${arg#*=} ;;
-    --interop) INTEROP=1 ;;
     *) printf 'ci/run.sh: unknown argument %s
 ' "$arg" >&2; exit 2 ;;
   esac
@@ -151,11 +146,10 @@ if [ $QUICK -eq 0 ]; then
     $ZIG build --build-file tests/consumer/build.zig run
 
   # The pairing with zmeshopt, end to end — encode, parse, decode, read
-  # back through the accessor API. Opt-in for the reason in the usage note:
-  # its build depends on a sibling zmeshopt checkout.
-  [ $INTEROP -eq 0 ] ||
-    run 'interop (zmeshopt round trip)' \
-      $ZIG build --build-file tests/interop/build.zig run
+  # back through the accessor API. tests/interop pins a released zmeshopt by
+  # URL and hash, so this is the one step that fetches a dependency.
+  run 'interop (zmeshopt round trip)' \
+    $ZIG build --build-file tests/interop/build.zig run
 
   #---------------------------------------------------------------------------
   section 'ABI'
@@ -167,12 +161,9 @@ if [ $QUICK -eq 0 ]; then
   run 'abi drift (mutation proof)' ci/check-abi-drift.sh
 
   # The same proof under a second ABI, opt-in. src/abi_check.zig compares
-  # src/c/*.zig against @cImport of the headers as preprocessed FOR A TARGET,
-  # so the run above proves the guard fires on this host's ABI and says
-  # nothing about another: a C enum is `int` under MSVC and `unsigned int`
-  # under the Itanium ABI, and cgltf passes enums by value in 4 signatures
-  # (cgltf_find_accessor, cgltf_num_components, cgltf_component_size,
-  # cgltf_calc_size) besides carrying them in most structs.
+  # src/c/*.zig against @cImport of the headers as preprocessed and laid out
+  # FOR A TARGET, so the run above proves the guard fires on this host's ABI
+  # and says nothing about another.
   [ -z "$DRIFT_TARGET" ] ||
     run "abi drift ($DRIFT_TARGET)" ci/check-abi-drift.sh -Dtarget="$DRIFT_TARGET"
 fi
