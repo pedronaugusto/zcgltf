@@ -115,6 +115,11 @@ run 'documented numbers' ci/check-docs.sh
 # fails there and nowhere else, because every local runner invokes bash first.
 run 'every committed script is executable' ci/check-executable.sh
 
+# .gitignore says what does not belong in the history. Being tracked overrides
+# every rule in it, so a blanket `git add -A` can put a fetched package or a
+# build directory into a public clone forever with nothing to say so.
+run 'nothing this repository ignores is tracked' ci/check-ignored.sh
+
 # The claim at the top of this file, held rather than stated.
 run 'ci/run.sh mirrors the workflow' ci/check-mirror.sh
 

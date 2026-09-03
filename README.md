@@ -206,7 +206,7 @@ and the C artifact are each driven by a real consumer there.
 | **13** | Zig tests `zig build test` executes |
 | **2257** | Zig source lines (`src/`) |
 | **19** | deliberate drifts `ci/check-abi-drift.sh` must refuse |
-| **22** | steps `ci/run.sh` runs |
+| **23** | steps `ci/run.sh` runs |
 | **7** | further targets `ci/run.sh` cross-compiles |
 <!-- END GENERATED -->
 
