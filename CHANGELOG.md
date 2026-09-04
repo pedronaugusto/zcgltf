@@ -4,7 +4,7 @@ Each entry says what the old shape could not express, so a port has the reason
 and not only the diff. Versions follow [semantic versioning](https://semver.org);
 before 1.0 the minor is the breaking one.
 
-## Unreleased
+## 0.1.2
 
 Two correctness fixes in the idiomatic layer and the doc claims that
 contradicted them. The C surface, the ABI guard and the document model are
