@@ -191,7 +191,11 @@ pub const Extension = extern struct {
 };
 
 /// `cgltf_buffer`: `data` is null until `loadBuffers` (or the caller) fills
-/// it; `data_free_method` records who owns it.
+/// it; `data_free_method` records who owns it. A caller-set `data` marked
+/// `.memory_free` is released by `cgltf_free` through `memory.free_func`
+/// (cgltf.h:1890), so it must come from the document's own allocator — a
+/// pointer from anywhere else reaches that hook without the bookkeeping it
+/// expects, exactly as for `BufferView.data` below.
 pub const Buffer = extern struct {
     name: ?[*:0]u8,
     size: Size,

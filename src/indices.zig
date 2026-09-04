@@ -1,6 +1,8 @@
 //! Idiomatic layer: object-to-index lookup, one comptime-dispatched entry
-//! point over the 16 per-type C helpers. No bounds check upstream — the
-//! object must belong to the document (or animation) it is looked up in.
+//! point over the 16 per-type C helpers. The object must belong to the
+//! document (or animation) it is looked up in: upstream asserts that
+//! (cgltf.h:2537), but the assert is compiled out under `NDEBUG`, so a
+//! foreign object yields a garbage index instead of a diagnostic.
 
 const std = @import("std");
 const c = @import("c.zig");

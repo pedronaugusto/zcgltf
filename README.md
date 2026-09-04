@@ -105,6 +105,14 @@ allocator requires the size back, so the adapter stores a size header ahead
 of each block; see [BINDING.md](BINDING.md). Per-call, not process-global:
 two documents can use two allocators.
 
+The header is why a block cgltf hands back for the caller to own — the one
+`loadBufferBase64` returns — must be released with
+`freeThrough(&options.memory, buf.ptr)` and never with the allocator
+directly: the pointer cgltf sees is past that header, so
+`allocator.free(buf)` would pass the wrong base and length. `freeThrough`
+falls back to `std.c.free` when no hooks are installed, so it is correct for
+either kind of options.
+
 `fileOptions(io)` replaces the fopen-based default reader with `std.Io`.
 That is not a convenience: upstream's default cannot open paths beyond the
 ANSI code page on Windows and, compiled by anything but MSVC, mis-sizes
@@ -203,8 +211,8 @@ and the C artifact are each driven by a real consumer there.
 | **39** | Zig externs (`pub extern fn` in `src/c/*.zig`) |
 | **49** | structs mirrored field-by-field (`src/c/types.zig`) |
 | **17** | enums mirrored enumerator-by-enumerator |
-| **13** | Zig tests `zig build test` executes |
-| **2257** | Zig source lines (`src/`) |
+| **15** | Zig tests `zig build test` executes |
+| **2328** | Zig source lines (`src/`) |
 | **19** | deliberate drifts `ci/check-abi-drift.sh` must refuse |
 | **23** | steps `ci/run.sh` runs |
 | **7** | further targets `ci/run.sh` cross-compiles |

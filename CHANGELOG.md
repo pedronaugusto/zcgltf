@@ -4,6 +4,37 @@ Each entry says what the old shape could not express, so a port has the reason
 and not only the diff. Versions follow [semantic versioning](https://semver.org);
 before 1.0 the minor is the breaking one.
 
+## Unreleased
+
+Two correctness fixes in the idiomatic layer and the doc claims that
+contradicted them. The C surface, the ABI guard and the document model are
+unchanged; `freeThrough` is additive.
+
+- `readFloat`, `readUint` and `readIndex` forwarded `index` to upstream
+  unchecked. Upstream checks `is_sparse` and a null buffer view, then
+  computes `element += accessor->offset + accessor->stride * index` with no
+  comparison against `accessor->count` (`cgltf.h:2371`, `cgltf.h:2500`,
+  `cgltf.h:2534`), so an out-of-range index read past the buffer view — from
+  Zig that looked memory-safe. The three now refuse such an index (`false`,
+  and `0` for `readIndex`, which already reports missing data that way), with
+  a test that fails if either guard is removed. The bulk `unpack*` entry
+  points never needed a guard: upstream clamps them to the accessor.
+- `loadBufferBase64`'s doc told the caller to release the result "through
+  that same allocator". With `memoryOptions` in play that corrupts the
+  heap: the returned pointer is past the adapter's 16-byte size header, so
+  `std.mem.Allocator.free` gets the wrong base and the wrong length. The
+  correct release is now named and public — `freeThrough(&options.memory,
+  ptr)`, which routes to the options' `free_func` or to `std.c.free` when a
+  document ran on cgltf's own allocator. It replaces the private copy that
+  `src/file.zig` was already using internally.
+- `Buffer.data`'s doc omitted the allocator-provenance warning its
+  `BufferView.data` neighbour carries: a caller-set pointer marked
+  `.memory_free` is released by `cgltf_free` through `memory.free_func`
+  (`cgltf.h:1890`), so it must come from the document's own allocator.
+- `src/indices.zig` claimed "No bounds check upstream". Upstream does assert
+  the object belongs to the document (`cgltf.h:2537`); the point is that the
+  assert is compiled out under `NDEBUG`, which is what the header now says.
+
 ## 0.1.1
 
 Documentation and gates only. The library, its ABI and its behaviour are

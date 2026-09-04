@@ -64,7 +64,10 @@ pub fn loadBuffers(options: *const t.Options, data: *t.Data, gltf_path: ?[:0]con
 }
 
 /// Decodes base64 into `size` bytes allocated through `options.memory`; the
-/// caller owns the result and releases it through that same allocator.
+/// caller owns the result and MUST release it with
+/// `memory.freeThrough(&options.memory, buf.ptr)`. Freeing it with a
+/// `std.mem.Allocator` directly is wrong even when the options came from
+/// `memoryOptions`: that adapter returns a pointer past its own header.
 pub fn loadBufferBase64(options: *const t.Options, size: usize, base64: [:0]const u8) Error![]u8 {
     var out: ?*anyopaque = null;
     try check(c.document.cgltf_load_buffer_base64(options, size, base64.ptr, &out));

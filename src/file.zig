@@ -27,10 +27,7 @@ fn allocThrough(memory: *const t.MemoryOptions, size: usize) ?*anyopaque {
     return std.c.malloc(size);
 }
 
-fn freeThrough(memory: *const t.MemoryOptions, ptr: ?*anyopaque) void {
-    if (memory.free_func) |f| return f(memory.user_data, ptr);
-    std.c.free(ptr);
-}
+const freeThrough = @import("memory.zig").freeThrough;
 
 fn zigRead(
     memory: *const t.MemoryOptions,

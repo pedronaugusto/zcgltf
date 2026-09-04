@@ -48,6 +48,17 @@ fn zigFree(user: ?*anyopaque, ptr: ?*anyopaque) callconv(.c) void {
     allocator.free(base[0..total]);
 }
 
+/// Releases a block the C layer allocated through `memory` — the base64
+/// buffer from `loadBufferBase64`, or any pointer cgltf hands back. Routes
+/// to the options' `free_func`, else `std.c.free`. The ONLY correct release
+/// when the options came from `memoryOptions`: the pointer cgltf sees sits
+/// past a 16-byte header, so `std.mem.Allocator.free` would be given the
+/// wrong base and the wrong length.
+pub fn freeThrough(memory: *const t.MemoryOptions, ptr: ?*anyopaque) void {
+    if (memory.free_func) |f| return f(memory.user_data, ptr);
+    std.c.free(ptr);
+}
+
 const document = @import("document.zig");
 
 test memoryOptions {
@@ -62,4 +73,24 @@ test memoryOptions {
     try document.loadBuffers(&options, data, path);
     try document.validate(data);
     try std.testing.expectEqual(@as(usize, 2), data.accessors_count);
+}
+
+test freeThrough {
+    // The base64 buffer comes back past the adapter's header, so the only
+    // correct release is through the options. `std.testing.allocator` fails
+    // the test on a leak or a bad free, which is what proves it.
+    var options = std.mem.zeroes(t.Options);
+    options.memory = memoryOptions(&std.testing.allocator);
+
+    // "zcgltf" in base64, decoded into its 6 bytes.
+    const decoded = try document.loadBufferBase64(&options, 6, "emNnbHRm");
+    try std.testing.expectEqualStrings("zcgltf", decoded);
+    freeThrough(&options.memory, decoded.ptr);
+
+    // With no hooks installed the same call routes to cgltf's own
+    // allocator, and `freeThrough` must reach `std.c.free` instead.
+    var plain = std.mem.zeroes(t.Options);
+    const c_owned = try document.loadBufferBase64(&plain, 6, "emNnbHRm");
+    try std.testing.expectEqualStrings("zcgltf", c_owned);
+    freeThrough(&plain.memory, c_owned.ptr);
 }

@@ -32,23 +32,33 @@ pub fn findAccessor(prim: *const t.Primitive, attribute_type: t.AttributeType, i
     return c.access.cgltf_find_accessor(prim, attribute_type, index);
 }
 
+// The three per-element readers below guard `index` themselves. Upstream
+// checks `is_sparse` and a null view, then computes
+// `element += accessor->offset + accessor->stride * index` against nothing
+// (cgltf.h:2371, 2500, 2534), so an out-of-range index reads past the view.
+// The bulk `unpack*` entry points need no guard: upstream clamps them.
+
 /// Reads element `index` as floats into `out`, converting and normalizing
-/// per the accessor. False when the backing data is missing or `out` is
-/// shorter than the element's component count.
+/// per the accessor. False when `index` is past the accessor's last element,
+/// when the backing data is missing, or when `out` is shorter than the
+/// element's component count.
 pub fn readFloat(accessor: *const t.Accessor, index: usize, out: []f32) bool {
+    if (index >= accessor.count) return false;
     return c.access.cgltf_accessor_read_float(accessor, index, out.ptr, out.len) != 0;
 }
 
 /// Same, converting to unsigned integers; float-sourced accessors are
 /// refused.
 pub fn readUint(accessor: *const t.Accessor, index: usize, out: []u32) bool {
+    if (index >= accessor.count) return false;
     return c.access.cgltf_accessor_read_uint(accessor, index, out.ptr, out.len) != 0;
 }
 
-/// Reads single-component element `index` as an index value; 0 when the
-/// backing data is missing (indistinguishable from a real 0 — upstream's
-/// contract).
+/// Reads single-component element `index` as an index value; 0 when `index`
+/// is past the accessor's last element or the backing data is missing
+/// (indistinguishable from a real 0 — upstream's contract).
 pub fn readIndex(accessor: *const t.Accessor, index: usize) usize {
+    if (index >= accessor.count) return 0;
     return c.access.cgltf_accessor_read_index(accessor, index);
 }
 
@@ -135,6 +145,29 @@ test readFloat {
     const view = indices.buffer_view orelse return error.TestUnexpectedResult;
     const bytes = bufferViewData(view) orelse return error.TestUnexpectedResult;
     try std.testing.expectEqual(@as(usize, 6), bytes.len);
+}
+
+test "the per-element readers refuse an index past the accessor's end" {
+    // Upstream would compute `offset + stride * index` and read past the
+    // buffer view; the guards in this module are what make that a refusal.
+    var options = std.mem.zeroes(t.Options);
+    const data = try parseTestAsset(&options);
+    defer document.free(data);
+
+    const prim = &data.meshes.?[0].primitives.?[0];
+    const positions = findAccessor(prim, .position, 0) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 3), positions.count);
+
+    var v: [3]f32 = undefined;
+    try std.testing.expect(readFloat(positions, 2, &v));
+    try std.testing.expect(!readFloat(positions, 3, &v));
+    try std.testing.expect(!readFloat(positions, std.math.maxInt(usize), &v));
+
+    const indices = prim.indices orelse return error.TestUnexpectedResult;
+    var one: [1]u32 = undefined;
+    try std.testing.expect(readUint(indices, 2, &one));
+    try std.testing.expect(!readUint(indices, 3, &one));
+    try std.testing.expectEqual(@as(usize, 0), readIndex(indices, 3));
 }
 
 test nodeTransformLocal {

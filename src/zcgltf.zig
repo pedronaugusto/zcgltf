@@ -141,6 +141,7 @@ pub const animationIndexOf = indices_area.animationIndexOf;
 
 // Allocation and file I/O adapters.
 pub const memoryOptions = memory_area.memoryOptions;
+pub const freeThrough = memory_area.freeThrough;
 pub const fileOptions = file_area.fileOptions;
 
 // The writer.
