@@ -6,8 +6,8 @@
     .dependencies = .{
         .zcgltf = .{ .path = "../.." },
         .zmeshopt = .{
-            .url = "https://github.com/pedronaugusto/zmeshopt/archive/refs/tags/v0.1.1.tar.gz",
-            .hash = "zmeshopt-0.1.1-qEyR2LNBDgD0tl1zHzis0MUo8B12wpEt7hjmkg5g05Gc",
+            .url = "https://github.com/pedronaugusto/zmeshopt/archive/refs/tags/v0.2.0.tar.gz",
+            .hash = "zmeshopt-0.2.0-qEyR2CGGDgAKjMCF4FZSDh-Mc42IV6GsZaL4JTseVa6r",
         },
     },
     .paths = .{""},
