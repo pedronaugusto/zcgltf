@@ -35,7 +35,7 @@ pub fn findAccessor(prim: *const t.Primitive, attribute_type: t.AttributeType, i
 // The three per-element readers below guard `index` themselves. Upstream
 // checks `is_sparse` and a null view, then computes
 // `element += accessor->offset + accessor->stride * index` against nothing
-// (cgltf.h:2371, 2500, 2534), so an out-of-range index reads past the view.
+// (cgltf.h:2371, 2515, 2534), so an out-of-range index reads past the view.
 // The bulk `unpack*` entry points need no guard: upstream clamps them.
 
 /// Reads element `index` as floats into `out`, converting and normalizing

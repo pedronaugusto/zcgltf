@@ -13,7 +13,7 @@ unchanged; `freeThrough` is additive.
 - `readFloat`, `readUint` and `readIndex` forwarded `index` to upstream
   unchecked. Upstream checks `is_sparse` and a null buffer view, then
   computes `element += accessor->offset + accessor->stride * index` with no
-  comparison against `accessor->count` (`cgltf.h:2371`, `cgltf.h:2500`,
+  comparison against `accessor->count` (`cgltf.h:2371`, `cgltf.h:2515`,
   `cgltf.h:2534`), so an out-of-range index read past the buffer view — from
   Zig that looked memory-safe. The three now refuse such an index (`false`,
   and `0` for `readIndex`, which already reports missing data that way), with
